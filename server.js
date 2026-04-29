@@ -10,6 +10,12 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '1mb' }));
 
 app.post('/api/analyze', async (req, res) => {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  });
+
   try {
     const { model, max_tokens, temperature, systemPrompt, userPrompt } = req.body;
     const openAiKey = process.env.OPENAI_API_KEY;
@@ -51,7 +57,21 @@ app.post('/api/analyze', async (req, res) => {
   }
 });
 
+app.options('/api/analyze', (req, res) => {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  });
+  res.sendStatus(204);
+});
+
 app.all('/api/analyze', (req, res) => {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  });
   res.status(405).json({ error: 'Method not allowed. Use POST to /api/analyze.' });
 });
 

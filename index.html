@@ -751,7 +751,11 @@ Company context: Kaizen Gaming (Betano) — a GameTech company operating in 20+ 
 Provide stage-specific, highly actionable analysis for a senior TPM.`;
 
     try {
-      const response = await fetch('/api/analyze', {
+      if (window.location.protocol === 'file:') {
+        throw new Error('Load the page via the local Node server at http://localhost:3000, not via file://');
+      }
+
+      const response = await fetch('http://localhost:3000/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
