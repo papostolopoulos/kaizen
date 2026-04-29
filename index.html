@@ -506,7 +506,7 @@
 
   <!-- API NOTICE -->
   <div class="api-notice">
-    ⚠ &nbsp;<span>API KEY:</span> Replace <code>YOUR_API_KEY_HERE</code> in the source before sharing.
+    ✅ &nbsp;<span>Secure API Key:</span> OpenAI key is loaded from the local server environment. No key entry is required in the browser.
   </div>
 
   <!-- STAGE RAIL -->
@@ -571,13 +571,6 @@
       <div class="form-group">
         <label>Primary Concern (optional)</label>
         <input type="text" id="concern" placeholder="e.g. vendor delay, data privacy, adoption" />
-      </div>
-      <div class="form-group full">
-        <label>OpenAI API Key</label>
-        <div class="api-input-wrap">
-          <input type="password" id="api-key" placeholder="sk-..." value="YOUR_OPENAI_KEY_HERE" />
-          <button class="api-toggle" onclick="toggleKey()">show</button>
-        </div>
       </div>
     </div>
 
@@ -694,10 +687,9 @@
     const desc = document.getElementById('project-desc').value.trim();
     const stakeholders = document.getElementById('stakeholders').value.trim();
     const concern = document.getElementById('concern').value.trim();
-    const apiKey = document.getElementById('api-key').value.trim();
 
-    if (!name || !desc || !apiKey || apiKey === 'YOUR_OPENAI_KEY_HERE') {
-      alert('Please fill in the project name, description, and a valid API key before analysing.');
+    if (!name || !desc) {
+      alert('Please fill in the project name and description before analysing.');
       return;
     }
 
@@ -765,7 +757,6 @@ Provide stage-specific, highly actionable analysis for a senior TPM.`;
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          apiKey,
           model: 'gpt-4o',
           max_tokens: 1800,
           temperature: 0.4,
