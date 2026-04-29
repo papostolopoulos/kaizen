@@ -456,6 +456,38 @@
   }
   .reset-btn:hover { color: var(--text); border-color: var(--border2); }
 
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    padding: 10px 20px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .download-btn:hover { background: #ff8b33; }
+
+  .results-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+
+  .field-help {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+
   /* FOOTER */
   footer {
     margin-top: 60px;
@@ -572,6 +604,11 @@
         <label>Primary Concern (optional)</label>
         <input type="text" id="concern" placeholder="e.g. vendor delay, data privacy, adoption" />
       </div>
+      <div class="form-group full">
+        <label>Reference Files (optional)</label>
+        <input type="file" id="project-file" accept=".txt,.md,.csv,.json" multiple />
+        <div class="field-help">Supported: .txt, .md, .csv, .json. Max size: 1 MB per file. Up to 3 files.</div>
+      </div>
     </div>
 
     <button class="analyze-btn" onclick="runAnalysis()" id="analyze-btn">
@@ -635,7 +672,10 @@
       <div class="result-section-body" id="igaming-body"></div>
     </div>
 
-    <button class="reset-btn" onclick="resetForm()">← New Analysis</button>
+    <div class="results-actions">
+      <button class="reset-btn" onclick="resetForm()">← New Analysis</button>
+      <button class="download-btn" onclick="downloadNotes()">Download Notes</button>
+    </div>
   </div>
 
   <footer>
@@ -647,6 +687,7 @@
 
 <script>
   let currentStage = 'poc';
+  let latestDownloadContent = '';
 
   const stageContexts = {
     poc: "<strong>Proof of Concept:</strong> The goal is to validate feasibility, not build for production. The TPM's job here is to define success criteria upfront, constrain scope ruthlessly, and ensure learnings are documented for the next stage decision.",
@@ -687,10 +728,42 @@
     const desc = document.getElementById('project-desc').value.trim();
     const stakeholders = document.getElementById('stakeholders').value.trim();
     const concern = document.getElementById('concern').value.trim();
+    const fileInput = document.getElementById('project-file');
+    const files = Array.from(fileInput?.files || []);
 
     if (!name || !desc) {
       alert('Please fill in the project name and description before analysing.');
       return;
+    }
+
+    let fileSummary = '';
+    if (files.length) {
+      const supportedExt = ['.txt', '.md', '.csv', '.json'];
+      const maxSize = 1024 * 1024;
+      const maxFiles = 3;
+
+      if (files.length > maxFiles) {
+        alert(`Please upload ${maxFiles} files or fewer.`);
+        return;
+      }
+
+      try {
+        const fileContents = await Promise.all(files.map(async (file) => {
+          const nameLower = file.name.toLowerCase();
+          if (!supportedExt.some(ext => nameLower.endsWith(ext))) {
+            throw new Error(`Unsupported file type: ${file.name}`);
+          }
+          if (file.size > maxSize) {
+            throw new Error(`File is too large: ${file.name} (max 1 MB).`);
+          }
+          const text = await readFileText(file);
+          return `Attached file (${file.name}):\n${text}`;
+        }));
+        fileSummary = `\n\n${fileContents.join('\n\n')}`;
+      } catch (error) {
+        alert('File upload error: ' + error.message);
+        return;
+      }
     }
 
     const stageLabel = {
@@ -744,7 +817,7 @@ Project Type: ${type || 'AI project'}
 Current Stage: ${stageLabel}
 Description: ${desc}
 Key Stakeholders: ${stakeholders || 'Not specified'}
-Primary Concern: ${concern || 'Not specified'}
+Primary Concern: ${concern || 'Not specified'}${fileSummary}
 
 Company context: Kaizen Gaming (Betano) — a GameTech company operating in 20+ regulated markets, with 800 people in tech and product. The Service Delivery team manages internal AI projects and vendor relationships with hyperscalers.
 
@@ -835,8 +908,61 @@ Provide stage-specific, highly actionable analysis for a senior TPM.`;
     renderItems('actions-body', data.actions || [], 'bullet-action', 'label-action');
     renderItems('igaming-body', data.igaming || [], 'bullet-igaming', 'label-igaming');
 
+    latestDownloadContent = formatDownloadContent(data, name, stage, type);
+
     document.getElementById('results').classList.add('visible');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function readFileText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Could not read file.'));
+      reader.readAsText(file);
+    });
+  }
+
+  function formatDownloadContent(data, name, stage, type) {
+    const lines = [];
+    lines.push(`Project analysis for: ${name}`);
+    lines.push(`Stage: ${stage}`);
+    lines.push(`Project type: ${type || 'AI Project'}`);
+    lines.push('');
+
+    const appendSection = (title, items) => {
+      if (!items || !items.length) return;
+      lines.push(title);
+      lines.push('-'.repeat(title.length));
+      items.forEach((item, index) => {
+        lines.push(`${index + 1}. ${item.label}`);
+        lines.push(item.detail);
+        lines.push('');
+      });
+    };
+
+    appendSection('Risks', data.risks);
+    appendSection('Questions', data.questions);
+    appendSection('Actions', data.actions);
+    appendSection('iGaming Considerations', data.igaming);
+
+    return lines.join('\n');
+  }
+
+  function downloadNotes() {
+    if (!latestDownloadContent) {
+      alert('No analysis results available to download.');
+      return;
+    }
+    const blob = new Blob([latestDownloadContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'kaizen-analysis-notes.txt';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
   }
 
   function resetForm() {
