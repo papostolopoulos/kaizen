@@ -7,25 +7,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0b0c0f;
-    --surface: #13151a;
-    --surface2: #1a1d24;
-    --surface3: #21252f;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.12);
-    --text: #f0efe8;
-    --muted: #7a7d88;
-    --accent: #00e5a0;
-    --accent-dim: rgba(0,229,160,0.12);
-    --accent-glow: rgba(0,229,160,0.25);
-    --warn: #f5a623;
-    --warn-dim: rgba(245,166,35,0.12);
-    --danger: #ff5f5f;
-    --danger-dim: rgba(255,95,95,0.1);
-    --blue: #4d9fff;
-    --blue-dim: rgba(77,159,255,0.12);
-    --purple: #b57bff;
-    --purple-dim: rgba(181,123,255,0.1);
+    --bg: #f7f8fb;
+    --surface: #ffffff;
+    --surface2: #f3f5fb;
+    --surface3: #edf2f8;
+    --border: rgba(15, 23, 42, 0.08);
+    --border2: rgba(15, 23, 42, 0.12);
+    --text: #0f172a;
+    --muted: #475569;
+    --accent: #ff6a00;
+    --accent-dim: rgba(255,106,0,0.14);
+    --accent-glow: rgba(255,106,0,0.18);
+    --warn: #ff6a00;
+    --warn-dim: rgba(255,106,0,0.12);
+    --danger: #d12b2b;
+    --danger-dim: rgba(209,43,43,0.1);
+    --blue: #0e5aff;
+    --blue-dim: rgba(14,90,255,0.12);
+    --purple: #7c3aed;
+    --purple-dim: rgba(124,58,237,0.1);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -44,9 +44,9 @@
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 40px 40px;
+      linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
     pointer-events: none;
     z-index: 0;
   }
@@ -55,11 +55,11 @@
   body::after {
     content: '';
     position: fixed;
-    top: -200px;
-    right: -100px;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%);
+    top: -180px;
+    right: -140px;
+    width: 520px;
+    height: 520px;
+    background: radial-gradient(circle, rgba(255,106,0,0.12) 0%, transparent 68%);
     pointer-events: none;
     z-index: 0;
   }
