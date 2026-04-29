@@ -5,7 +5,9 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const DEFAULT_PORT = 3000;
+const FALLBACK_PORT = 3001;
+let port = Number(process.env.PORT || DEFAULT_PORT);
 
 app.use(express.json({ limit: '1mb' }));
 
@@ -81,6 +83,25 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+function startServer(listenPort, isFallback = false) {
+  const serverInstance = app.listen(listenPort, () => {
+    console.log(`Server running at http://localhost:${listenPort}`);
+  });
+
+  serverInstance.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      if (!isFallback && listenPort === DEFAULT_PORT) {
+        console.warn(`Port ${DEFAULT_PORT} is in use, attempting fallback port ${FALLBACK_PORT}...`);
+        startServer(FALLBACK_PORT, true);
+      } else {
+        console.error(`Port ${listenPort} is in use. Please free the port or set PORT to a different value.`);
+        process.exit(1);
+      }
+    } else {
+      console.error('Server error:', err);
+      process.exit(1);
+    }
+  });
+}
+
+startServer(port);
