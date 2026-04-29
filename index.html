@@ -765,21 +765,30 @@ Provide stage-specific, highly actionable analysis for a senior TPM.`;
         })
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'API error');
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        throw new Error('Invalid JSON response from server: ' + text.slice(0, 240));
       }
 
-      const raw = data.choices[0].message.content;
+      if (!response.ok) {
+        throw new Error(data.error || 'API error');
+      }
+
+      const raw = data.choices?.[0]?.message?.content;
+      if (!raw) {
+        throw new Error('OpenAI response did not contain expected content field.');
+      }
+
       let parsed;
       try {
         parsed = JSON.parse(raw);
       } catch(e) {
-        // Try to extract JSON from the response
         const match = raw.match(/\{[\s\S]*\}/);
         if (match) parsed = JSON.parse(match[0]);
-        else throw new Error('Could not parse response');
+        else throw new Error('Could not parse OpenAI JSON response. Raw output: ' + raw.slice(0, 240));
       }
 
       renderResults(parsed, name, stageLabel, type);

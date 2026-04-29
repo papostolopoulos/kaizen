@@ -12,11 +12,11 @@ app.use(express.static(path.join(__dirname)));
 
 app.post('/api/analyze', async (req, res) => {
   try {
-    const { apiKey, model, max_tokens, temperature, systemPrompt, userPrompt } = req.body;
-    const openAiKey = apiKey || process.env.OPENAI_API_KEY;
+    const { model, max_tokens, temperature, systemPrompt, userPrompt } = req.body;
+    const openAiKey = process.env.OPENAI_API_KEY;
 
     if (!openAiKey) {
-      return res.status(400).json({ error: 'Missing OpenAI API key. Provide it in the request body or set OPENAI_API_KEY in the environment.' });
+      return res.status(400).json({ error: 'Missing OpenAI API key. Set OPENAI_API_KEY in the local .env file.' });
     }
 
     const payload = {
@@ -38,9 +38,11 @@ app.post('/api/analyze', async (req, res) => {
       body: JSON.stringify(payload)
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    const data = contentType.includes('application/json') ? await response.json() : { error: await response.text() };
+
     if (!response.ok) {
-      return res.status(response.status).json(data);
+      return res.status(response.status).json({ error: data.error || data });
     }
 
     res.json(data);
